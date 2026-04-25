@@ -28,9 +28,9 @@ export default function Home() {
         <section className="glass-panel overflow-hidden rounded-[32px] px-6 py-8 sm:px-8 sm:py-10">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="grid gap-6">
-              <img src="/bitify.png" alt="Bitify" className="h-auto w-36 object-contain" />
+              <img src="/bitify.png" alt="Bitify" className="h-auto w-72 object-contain" />
               <div className="grid gap-4">
-                <p className="text-sm uppercase tracking-[0.26em] text-slate-600">Fitness flow</p>
+                <p className="text-sm uppercase tracking-[0.26em] text-slate-600">ai based fitness progress tracking app</p>
                 <h1 className="max-w-3xl text-5xl leading-[1.05] text-slate-900 sm:text-6xl">
                 </h1>
                 <p className="max-w-2xl text-lg text-slate-700">
@@ -46,7 +46,7 @@ export default function Home() {
                 </Link>
                 <div className="inline-flex h-14 items-center gap-2 rounded-2xl border border-mint/30 bg-mint/12 px-5 text-slate-700">
                   <ShieldCheck size={18} className="text-mint" />
-                  Auth, avatar, progress, community
+                  Auth, flow, avatar, progress, community
                 </div>
               </div>
             </div>

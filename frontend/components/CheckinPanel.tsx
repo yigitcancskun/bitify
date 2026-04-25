@@ -82,7 +82,7 @@ export function CheckinPanel({
             <Utensils size={20} />
             Nutrition
           </span>
-          <p className="text-sm text-slate-600">Photo-based nutrition input will be added here in the next update.</p>
+          <p className="text-sm text-slate-600">This feature is a premium feature. Upgrade to unlock.</p>
         </div>
 
         <label className="rounded-2xl border border-mint/25 bg-mint/10 p-4">

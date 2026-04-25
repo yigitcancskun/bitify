@@ -54,7 +54,7 @@ export default function MyProgressPage() {
     <AppChrome>
       <RouteGate state={state} booting={booting} pathname="/my-progress" />
       <section className="glass-panel rounded-3xl p-5">
-        <p className="text-lg text-slate-900">zumzum, you are ready for your bitify progress</p>
+        <p className="text-lg text-slate-900">{state.profile.username}, you are ready for your bitify progress</p>
       </section>
       <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="grid gap-5">

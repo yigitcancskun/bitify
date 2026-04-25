@@ -15,9 +15,11 @@ from .models import (
     UploadResponse,
 )
 from .store import Store, normalize_username
-from .wiro import WiroClient, extract_output_url, extract_scores, extract_task_id, extract_task_status, task_failed
+from .wiro import WiroClient, extract_output_url, extract_task_id, extract_task_status, task_failed
 
 DEFAULT_HEAD_ASSET = Path(__file__).resolve().parent.parent / "assets" / "default_head.svg"
+HARDCODED_BACK_ASSET = Path(__file__).resolve().parent.parent / "assets" / "hardcoded_back_avatar.svg"
+HARDCODED_SCORE_STATS = {"muscle": 68, "fat": 45, "tone": 48}
 BASE_AVATAR_PROMPT = (
     "Create a stylized 3D cartoon full-body fitness avatar from the SAME person's front and back body photos.\n\n"
     "STRICT BODY LOCK:\n"
@@ -283,6 +285,7 @@ async def generate_avatar(
     stats = current_avatar.get("stats")
     identity_image_url = current_avatar.get("image_url")
     head_reference_url = store.ensure_public_asset("default-head.svg", str(DEFAULT_HEAD_ASSET), "image/svg+xml")
+    hardcoded_back_url = store.ensure_public_asset("hardcoded-back-avatar.svg", str(HARDCODED_BACK_ASSET), "image/svg+xml")
     if payload.spend_credit:
         store.spend_credit(payload.user_id)
 
@@ -290,55 +293,28 @@ async def generate_avatar(
     if not wiro.configured:
         raise HTTPException(status_code=503, detail="Wiro API key is missing. Real avatar generation requires WIRO_API_KEY.")
 
-    try:
-        score_payload = await wiro.run_body_score(payload.front_url, payload.back_url, payload.user_input)
-    except Exception as score_exc:
-        raise HTTPException(status_code=502, detail=f"Photo score generation failed: {score_exc}") from score_exc
-
-    scored_stats = extract_scores(score_payload)
-    score_task_id = extract_task_id(score_payload)
-    if score_task_id and not has_meaningful_scores(score_payload):
-        for _ in range(12):
-            await asyncio.sleep(1.5)
-            detail = await wiro.task_detail(score_task_id)
-            if task_failed(detail):
-                break
-            scored_stats = extract_scores(detail)
-            if has_meaningful_scores(detail):
-                break
-    scored_stats = (scored_stats if scored_stats and any(value > 0 for value in scored_stats.values()) else None) or fallback_stats(
-        stats,
-        payload.user_input,
-    )
+    score_payload = {"mode": "hardcoded", "stats": HARDCODED_SCORE_STATS}
+    scored_stats = HARDCODED_SCORE_STATS.copy()
 
     front_prompt = build_avatar_prompt("front", payload.user_input, bool(identity_image_url))
-    back_prompt = build_avatar_prompt("back", payload.user_input, bool(identity_image_url))
-    front_result, back_result = await asyncio.gather(
-        resolve_avatar_view(
-            user_id=payload.user_id,
-            view="front",
-            wiro=wiro,
-            store=store,
-            front_url=payload.front_url,
-            back_url=payload.back_url,
-            prompt=front_prompt,
-            identity_image_url=identity_image_url,
-            head_reference_url=head_reference_url,
-        ),
-        resolve_avatar_view(
-            user_id=payload.user_id,
-            view="back",
-            wiro=wiro,
-            store=store,
-            front_url=payload.front_url,
-            back_url=payload.back_url,
-            prompt=back_prompt,
-            identity_image_url=identity_image_url,
-            head_reference_url=head_reference_url,
-        ),
+    front_output_url, front_metadata = await resolve_avatar_view(
+        user_id=payload.user_id,
+        view="front",
+        wiro=wiro,
+        store=store,
+        front_url=payload.front_url,
+        back_url=payload.back_url,
+        prompt=front_prompt,
+        identity_image_url=identity_image_url,
+        head_reference_url=head_reference_url,
     )
-    front_output_url, front_metadata = front_result
-    back_output_url, back_metadata = back_result
+    back_output_url = hardcoded_back_url
+    back_metadata = {
+        "mode": "hardcoded",
+        "view": "back",
+        "asset_name": "hardcoded-back-avatar.svg",
+        "output_url": back_output_url,
+    }
     final_metadata = {
         "front_generation": front_metadata,
         "back_generation": back_metadata,
