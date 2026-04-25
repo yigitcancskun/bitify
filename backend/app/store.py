@@ -10,15 +10,24 @@ from supabase import Client, create_client
 
 from .config import Settings
 
-BASE_STATS = {"muscle": 24, "fat": 42, "posture": 50, "tone": 28}
+BASE_STATS = {"muscle": 24, "fat": 42, "tone": 28}
 REAL_AVATAR_STATUSES = {"running", "completed", "task_postprocess_end", "task_end", "evolved", "failed"}
 SOURCE_BUCKET_MARKERS = ("/body-uploads/", "/storage/v1/object/sign/body-uploads/")
-LEADERBOARD_SORTS = {"xp", "level", "streak", "muscle", "fat", "posture", "tone"}
+LEADERBOARD_SORTS = {"xp", "level", "streak", "muscle", "fat", "tone"}
 AUTH_EMAIL_DOMAIN = "users.bitify.local"
 RLS_ERROR = (
     "Supabase blocked the profiles query with row-level security. "
     "Use the service role key in backend/.env, then rerun backend/sql/schema.sql in Supabase SQL editor."
 )
+
+
+def normalize_stats(stats: dict[str, Any] | None) -> dict[str, int]:
+    raw = stats or {}
+    return {
+        "muscle": int(raw.get("muscle", BASE_STATS["muscle"])),
+        "fat": int(raw.get("fat", BASE_STATS["fat"])),
+        "tone": int(raw.get("tone", BASE_STATS["tone"])),
+    }
 
 
 def normalize_username(value: str) -> str:
@@ -253,7 +262,7 @@ class Store:
             "image_url": image_url,
             "source_front_url": source_front_url,
             "source_back_url": source_back_url,
-            "stats": stats or BASE_STATS,
+            "stats": normalize_stats(stats),
             "wiro_task_id": wiro_task_id,
             "wiro_status": wiro_status,
             "wiro_metadata": wiro_metadata or {},
@@ -295,7 +304,7 @@ class Store:
             .select("*")
             .eq("user_id", user_id)
             .order("log_date", desc=True)
-            .limit(7)
+            .limit(30)
             .execute()
         )
         return {
@@ -304,6 +313,30 @@ class Store:
             "avatar_history": history,
             "recent_logs": log_result.data,
         }
+
+    def complete_profile(self, user_id: str, age: int, height_cm: float, weight_kg: float) -> dict[str, Any]:
+        client = self.require_client()
+        try:
+            client.table("profiles").update(
+                {
+                    "age": int(age),
+                    "height_cm": float(height_cm),
+                    "weight_kg": float(weight_kg),
+                }
+            ).eq("id", user_id).execute()
+        except APIError as exc:
+            if _is_rls_error(exc):
+                raise HTTPException(status_code=503, detail=RLS_ERROR) from exc
+            if "Could not find the 'age' column" in str(exc):
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        "Profile fields are not ready in Supabase yet. "
+                        "Please run backend/sql/schema.sql in Supabase SQL Editor, then retry."
+                    ),
+                ) from exc
+            raise
+        return self.get_state(user_id)
 
     def get_leaderboard(self, current_user_id: str, sort: str = "xp") -> dict[str, Any]:
         client = self.require_client()
@@ -327,7 +360,7 @@ class Store:
         rows = []
         for profile in profiles_result.data:
             user_id = profile["id"]
-            stats = dict((latest_avatar_by_user.get(user_id) or {}).get("stats") or BASE_STATS)
+            stats = normalize_stats((latest_avatar_by_user.get(user_id) or {}).get("stats"))
             score = self._leaderboard_score(profile, stats, sort_key)
             rows.append(
                 {
@@ -367,13 +400,14 @@ class Store:
             row["rank"] = index
         return {"sort": sort_key, "rows": rows}
 
-    def apply_checkin(self, user_id: str, workout: bool, diet: bool, water_cups: int) -> dict[str, Any]:
+    def apply_checkin(self, user_id: str, workout: bool, diet: bool, water_liters: float) -> dict[str, Any]:
         client = self.require_client()
         today = date.today()
         current_state = self.get_state(user_id)
         profile = current_state["profile"]
         avatar = current_state["current_avatar"] or {"stats": BASE_STATS, "image_url": None}
-        stats = dict(avatar["stats"] or BASE_STATS)
+        stats = normalize_stats(avatar["stats"])
+        water_cups = max(0, min(24, int(round(float(water_liters) * 4))))
 
         xp_earned = (35 if workout else 0) + (25 if diet else 0) + (15 if water_cups >= 8 else 0)
         credits_earned = 1 if xp_earned else 0
@@ -389,7 +423,6 @@ class Store:
 
         stats["muscle"] = min(100, stats.get("muscle", 24) + (2 if workout else 0))
         stats["fat"] = max(8, stats.get("fat", 42) - (1 if diet else 0) - (1 if water_cups >= 8 else 0))
-        stats["posture"] = min(100, stats.get("posture", 50) + (1 if workout else 0))
         stats["tone"] = min(100, stats.get("tone", 28) + (1 if workout else 0) + (1 if diet else 0))
 
         client.table("daily_logs").upsert(
@@ -440,7 +473,7 @@ class Store:
             return int(profile.get("level") or 0)
         if sort == "streak":
             return int(profile.get("streak_count") or 0)
-        if sort in {"muscle", "fat", "posture", "tone"}:
+        if sort in {"muscle", "fat", "tone"}:
             return int(stats.get(sort) or 0)
         return int(profile.get("xp") or 0)
 
@@ -472,4 +505,5 @@ class Store:
             "front": front_view or serialized.get("image_url"),
             "back": back_view or serialized.get("source_back_url"),
         }
+        serialized["stats"] = normalize_stats(serialized.get("stats"))
         return serialized

@@ -85,12 +85,12 @@ class WiroClient:
             "Be extremely critical and conservative. Do NOT give high scores unless exceptional evidence exists. "
             "Use this scale: beginner/average bodies should mostly stay in 15-55 range. "
             "Only output strict JSON object and nothing else: "
-            '{"muscle":0-100,"fat":0-100,"posture":0-100,"tone":0-100}. '
+            '{"muscle":0-100,"fat":0-100,"tone":0-100}. '
             "Definitions: muscle=visible muscle development; fat=higher means more body fat; "
-            "posture=alignment and balance; tone=overall athletic sharpness. "
+            "tone=overall athletic sharpness. "
             "Ignore head identity, beauty, clothing style, and any identity-related user text. "
-            "Only score body composition, posture, and visible athletic form."
-            "If user's fat ratio appears high, be more critical on muscle and posture, as these are less visible under high fat."
+            "Only score body composition and visible athletic form."
+            "If user's fat ratio appears high, be more critical on muscle and tone, as these are less visible under high fat."
         )
         if user_context:
             prompt += f" User context for body-only judgment, ignoring identity details: {user_context}"
@@ -235,12 +235,11 @@ def _walk_values(value: Any):
 def _extract_score_object(value: Any) -> dict[str, int] | None:
     if isinstance(value, dict):
         keys = set(value.keys())
-        if {"muscle", "fat", "posture", "tone"}.issubset(keys):
+        if {"muscle", "fat", "tone"}.issubset(keys):
             try:
                 return {
                     "muscle": _clamp_score(value["muscle"]),
                     "fat": _clamp_score(value["fat"]),
-                    "posture": _clamp_score(value["posture"]),
                     "tone": _clamp_score(value["tone"]),
                 }
             except Exception:

@@ -1,4 +1,4 @@
-import { Activity, ChevronLeft, ChevronRight, Droplets, Flame, ShieldCheck } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, Droplets, Flame } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import type { AvatarVersion } from "@/lib/api";
@@ -6,7 +6,6 @@ import type { AvatarVersion } from "@/lib/api";
 const statMeta = [
   { key: "muscle", label: "Muscle", icon: Activity, color: "bg-mint" },
   { key: "fat", label: "Fat", icon: Flame, color: "bg-amber-400" },
-  { key: "posture", label: "Posture", icon: ShieldCheck, color: "bg-violet" },
   { key: "tone", label: "Tone", icon: Droplets, color: "bg-sky-400" }
 ] as const;
 
@@ -30,6 +29,14 @@ export function AvatarCard({ avatar, streakCount, busy = false }: Props) {
   const [activeView, setActiveView] = useState<"front" | "back">("front");
   const activeImage = activeView === "back" && views.back ? views.back : views.front;
   const avatarStats = avatar?.stats;
+  const displayStats = avatarStats ?? { muscle: 0, fat: 0, tone: 0 };
+  const shouldMuteStats = isBusy || !hasAvatar;
+  const stageMessage =
+    avatar?.wiro_status === "running"
+      ? "Avatar is being prepared."
+      : avatar?.wiro_status === "failed"
+        ? "Avatar generation failed. Try clearer photos."
+        : "This section will open after you upload your form.";
 
   useEffect(() => {
     setActiveView("front");
@@ -45,9 +52,9 @@ export function AvatarCard({ avatar, streakCount, busy = false }: Props) {
 
   return (
     <section className="glass-panel overflow-hidden rounded-[28px]">
-      <div className="avatar-stage relative flex min-h-[390px] items-center justify-center overflow-hidden px-6 py-8">
+      <div className="avatar-stage relative flex min-h-[350px] items-center justify-center overflow-hidden px-4 py-5 sm:min-h-[390px] sm:px-6 sm:py-8">
         {activeImage ? (
-          <>
+          <div className={`relative flex h-full w-full items-center justify-center transition ${isBusy ? "blur-[2px] opacity-60" : ""}`}>
             {hasBackView ? (
               <>
                 <button
@@ -79,47 +86,42 @@ export function AvatarCard({ avatar, streakCount, busy = false }: Props) {
               <span className="h-1 w-1 rounded-full bg-slate-400" />
               <span className={activeView === "back" ? "text-violet" : ""}>Back</span>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="grid h-[310px] w-[240px] place-items-center rounded-[26px] border border-dashed border-mint/25 bg-mint/10 px-6 text-center text-sm text-slate-700">
-            {avatar?.wiro_status === "running"
-              ? "Avatar is being prepared."
-              : avatar?.wiro_status === "failed"
-                ? "Avatar generation failed. Try clearer photos."
-                : "This section will open after you upload your form."}
+          <div className={`grid h-[310px] w-[240px] place-items-center rounded-[26px] border border-dashed border-mint/25 bg-mint/10 px-6 text-center text-sm text-slate-700 transition ${isBusy ? "blur-[2px] opacity-60" : ""}`}>
+            {stageMessage}
           </div>
         )}
+        {isBusy ? <AvatarStageLoading /> : null}
       </div>
-      <div className="relative p-5">
-        {hasAvatar && avatarStats ? (
-          <div className={`grid gap-4 transition ${isBusy ? "blur-[2px] opacity-60" : ""}`}>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-bold">Today&apos;s form</h2>
-              </div>
-              <StreakPill streakCount={streakCount} />
+      <div className="relative px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
+        <div className={`grid gap-4 transition ${shouldMuteStats ? "blur-[2px] opacity-60" : ""}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold">Today&apos;s form</h2>
             </div>
-            <div className="grid gap-3">
-              {statMeta.map(({ key, label, icon: Icon, color }) => (
-                <div key={key} className="grid grid-cols-[88px_1fr_40px] items-center gap-3">
-                  <div className="flex items-center gap-2 text-sm text-slate-700">
-                    <Icon size={16} />
-                    {label}
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className={`h-full rounded-full ${color}`} style={{ width: `${avatarStats[key]}%` }} />
-                  </div>
-                  <span className="text-right text-sm text-slate-700">{avatarStats[key]}</span>
+            <StreakPill streakCount={streakCount} />
+          </div>
+          <div className="grid gap-3">
+            {statMeta.map(({ key, label, icon: Icon, color }) => (
+              <div key={key} className="grid grid-cols-[88px_1fr_40px] items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-slate-700">
+                  <Icon size={16} />
+                  {label}
                 </div>
-              ))}
-            </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className={`h-full rounded-full ${color}`} style={{ width: `${displayStats[key]}%` }} />
+                </div>
+                <span className="text-right text-sm text-slate-700">{displayStats[key]}</span>
+              </div>
+            ))}
           </div>
-        ) : (
-          <div className="rounded-[24px] border border-mint/25 bg-mint/10 p-4 text-sm text-slate-700">
-            This section will open after you upload your form.
-          </div>
-        )}
-        {isBusy ? <AvatarScoreLoading /> : null}
+        </div>
+        {isBusy ? (
+          <AvatarScoreLoading message="Loading... scoring your form" />
+        ) : !hasAvatar ? (
+          <AvatarScoreLoading message="This section will open after you upload your form." />
+        ) : null}
       </div>
     </section>
   );
@@ -137,16 +139,33 @@ function StreakPill({ streakCount }: { streakCount: number }) {
   );
 }
 
-function AvatarScoreLoading() {
+function AvatarScoreLoading({ message }: { message: string }) {
   return (
     <div className="absolute inset-0 grid place-items-center rounded-[28px] bg-white/45 backdrop-blur-[2px]">
+      <div className="flex flex-col items-center gap-3">
+        {message.startsWith("Loading") ? (
+          <div className="score-loader">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <span key={index} className="score-dot" style={{ ["--i" as string]: index } as CSSProperties} />
+            ))}
+          </div>
+        ) : null}
+        <p className="text-sm text-slate-700">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+function AvatarStageLoading() {
+  return (
+    <div className="absolute inset-0 grid place-items-center bg-white/28 backdrop-blur-[2px]">
       <div className="flex flex-col items-center gap-3">
         <div className="score-loader">
           {Array.from({ length: 8 }).map((_, index) => (
             <span key={index} className="score-dot" style={{ ["--i" as string]: index } as CSSProperties} />
           ))}
         </div>
-        <p className="text-sm text-slate-700">Loading... scoring your form</p>
+        <p className="text-sm text-slate-700">Loading... generating your avatar</p>
       </div>
     </div>
   );

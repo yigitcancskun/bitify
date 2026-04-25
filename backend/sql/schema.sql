@@ -16,6 +16,11 @@ create table if not exists public.profiles (
 alter table public.profiles
   add column if not exists auth_user_id uuid unique;
 
+alter table public.profiles
+  add column if not exists age integer,
+  add column if not exists height_cm double precision,
+  add column if not exists weight_kg double precision;
+
 create table if not exists public.avatar_versions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
@@ -23,12 +28,16 @@ create table if not exists public.avatar_versions (
   image_url text,
   source_front_url text,
   source_back_url text,
-  stats jsonb not null default '{"muscle":24,"fat":42,"posture":50,"tone":28}'::jsonb,
+  stats jsonb not null default '{"muscle":24,"fat":42,"tone":28}'::jsonb,
   wiro_task_id text,
   wiro_status text not null default 'running',
   wiro_metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+update public.avatar_versions
+set stats = stats - 'posture'
+where stats ? 'posture';
 
 create table if not exists public.daily_logs (
   id uuid primary key default gen_random_uuid(),

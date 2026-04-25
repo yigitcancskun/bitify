@@ -6,7 +6,14 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import Settings, get_settings
-from .models import AnonymousSessionRequest, AuthRequest, CheckinRequest, GenerateAvatarRequest, UploadResponse
+from .models import (
+    AnonymousSessionRequest,
+    AuthRequest,
+    CheckinRequest,
+    CompleteProfileRequest,
+    GenerateAvatarRequest,
+    UploadResponse,
+)
 from .store import Store, normalize_username
 from .wiro import WiroClient, extract_output_url, extract_scores, extract_task_id, extract_task_status, task_failed
 
@@ -15,7 +22,7 @@ BASE_AVATAR_PROMPT = (
     "Create a stylized 3D cartoon full-body fitness avatar from the SAME person's front and back body photos.\n\n"
     "STRICT BODY LOCK:\n"
     "- Copy only the body below the neck from the body photos.\n"
-    "- Preserve shoulder width, torso thickness, waist shape, hip ratio, arm volume, leg volume, posture and asymmetry.\n"
+    "- Preserve shoulder width, torso thickness, waist shape, hip ratio, arm volume, leg volume, and asymmetry.\n"
     "- DO NOT invent extra muscle separation, six-pack abs, chest cuts, V-taper, or athletic sharpness unless they are clearly visible in BOTH photos.\n"
     "- If uncertain, choose the softer and less muscular interpretation.\n"
     "- Keep body fat and muscle definition conservative and realistic.\n\n"
@@ -66,12 +73,15 @@ def build_avatar_prompt(view: str, user_input: str | None, has_identity: bool) -
 
 
 def fallback_stats(previous_stats: dict[str, int] | None, user_input: str | None) -> dict[str, int]:
-    stats = dict(previous_stats or {"muscle": 24, "fat": 42, "posture": 50, "tone": 28})
+    stats = {
+        "muscle": int((previous_stats or {}).get("muscle", 24)),
+        "fat": int((previous_stats or {}).get("fat", 42)),
+        "tone": int((previous_stats or {}).get("tone", 28)),
+    }
     context = (user_input or "").lower()
     positive_terms = {
         "muscle": ("workout", "lift", "lat pull", "pull down", "protein", "gym", "push", "squat"),
         "fat": ("diet", "deficit", "cardio", "walk", "steps", "water", "lean"),
-        "posture": ("mobility", "stretch", "yoga", "posture", "pilates"),
         "tone": ("run", "cardio", "athletic", "conditioning", "hiit"),
     }
     for key, words in positive_terms.items():
@@ -395,7 +405,12 @@ async def get_avatar_task(
 
 @app.post("/api/checkins/today")
 def submit_checkin(payload: CheckinRequest, store: Store = Depends(get_store)) -> dict:
-    return store.apply_checkin(payload.user_id, payload.workout, payload.diet, payload.water_cups)
+    return store.apply_checkin(payload.user_id, payload.workout, payload.diet, payload.water_liters)
+
+
+@app.post("/api/profile/complete")
+def complete_profile(payload: CompleteProfileRequest, store: Store = Depends(get_store)) -> dict:
+    return store.complete_profile(payload.user_id, payload.age, payload.height_cm, payload.weight_kg)
 
 
 @app.get("/api/me/state")
@@ -404,5 +419,5 @@ def get_me_state(user_id: str, store: Store = Depends(get_store)) -> dict:
 
 
 @app.get("/api/leaderboard")
-def get_leaderboard(user_id: str, sort: str = "xp", store: Store = Depends(get_store)) -> dict:
+def get_leaderboard(user_id: str, sort: str = "streak", store: Store = Depends(get_store)) -> dict:
     return store.get_leaderboard(user_id, sort)

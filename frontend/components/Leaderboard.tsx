@@ -1,25 +1,19 @@
 "use client";
 
-import { Activity, Award, Flame, Gauge, ShieldCheck, TrendingUp, UserRound } from "lucide-react";
+import { Activity, Flame, Gauge, UserRound } from "lucide-react";
 import type { LeaderboardRow, LeaderboardSort } from "@/lib/api";
 
 const sortOptions: Array<{ key: LeaderboardSort; label: string; metricLabel: string }> = [
-  { key: "xp", label: "XP", metricLabel: "XP" },
-  { key: "level", label: "Level", metricLabel: "Level" },
   { key: "streak", label: "Streak", metricLabel: "Days" },
   { key: "muscle", label: "Muscle", metricLabel: "Muscle" },
   { key: "fat", label: "Lower Fat", metricLabel: "Fat" },
-  { key: "posture", label: "Posture", metricLabel: "Posture" },
   { key: "tone", label: "Tone", metricLabel: "Tone" }
 ];
 
-const metricIcons: Record<LeaderboardSort, typeof TrendingUp> = {
-  xp: TrendingUp,
-  level: Award,
+const metricIcons: Record<LeaderboardSort, typeof Activity> = {
   streak: Flame,
   muscle: Activity,
   fat: Gauge,
-  posture: ShieldCheck,
   tone: Activity
 };
 
@@ -84,9 +78,7 @@ export function Leaderboard({
                   <IdleProfileBadge active={row.is_current_user} />
                   <div className="min-w-0">
                     <h2 className="truncate text-lg text-slate-900">{row.display_name}</h2>
-                    <p className="truncate text-xs text-slate-600">
-                      Level {row.level} | {row.xp} XP | Streak {row.streak_count}
-                    </p>
+                    <p className="truncate text-xs text-slate-600">Streak {row.streak_count}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-2 text-right text-slate-900">

@@ -9,22 +9,25 @@ export function IdentityGate({
   loading,
   error,
   onLogin,
-  onRegister
+  onRegister,
+  redirectTo
 }: {
   loading: boolean;
   error: string | null;
   onLogin: (username: string, password: string) => Promise<AppState | null>;
   onRegister: (username: string, password: string) => Promise<AppState | null>;
+  redirectTo?: string;
 }) {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"login" | "register">("login");
+  const targetRoute = redirectTo ?? "/avatar";
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     const result = mode === "login" ? await onLogin(username, password) : await onRegister(username, password);
-    if (result) router.push("/my-progress");
+    if (result) router.push(targetRoute);
   }
 
   return (

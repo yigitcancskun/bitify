@@ -6,7 +6,6 @@ import { ChartLine, LogOut, UserRound, Users, UserSquare2 } from "lucide-react";
 import { clearFitnessSession, useFitnessSession } from "@/lib/session";
 
 const links = [
-  { href: "/avatar", label: "Avatar", icon: UserSquare2 },
   { href: "/my-progress", label: "My Progress", icon: ChartLine },
   { href: "/community", label: "Community", icon: Users }
 ];
@@ -23,14 +22,13 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
             <div>
               <Link
                 href="/"
-                onClick={clearFitnessSession}
                 aria-label="Go to Bitify start"
                 className="flex h-full min-h-10 items-center justify-center rounded-xl px-3 py-2 transition hover:bg-violet/10"
               >
                 <img src="/bitify.png" alt="Bitify" className="h-8 w-auto max-w-[92px] object-contain" />
               </Link>
             </div>
-            <ul className="grid grid-cols-3 gap-2">
+            <ul className="grid grid-cols-2 gap-2">
               {links.map(({ href, label, icon: Icon }) => {
                 const active = pathname === href;
                 return (
@@ -58,10 +56,18 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
                 <UserRound size={16} />
                 <span className="hidden md:inline">{state?.profile.username ?? "Profile"}</span>
               </button>
-              <div className="invisible absolute right-0 top-full z-30 mt-2 w-44 rounded-2xl border border-mint/25 bg-white/95 p-2 opacity-0 shadow-xl transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+              <div className="invisible absolute right-0 top-full z-20 h-6 w-48 group-focus-within:visible group-hover:visible" />
+              <div className="invisible absolute right-0 top-full z-30 mt-1 w-48 rounded-2xl border border-mint/25 bg-white/95 p-2 opacity-0 shadow-xl transition duration-300 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
                 <p className="truncate px-3 py-2 text-xs text-slate-600">{state?.profile.username ?? "My profile"}</p>
                 <Link
-                  href="/"
+                  href="/avatar"
+                  className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-mint/20"
+                >
+                  <UserSquare2 size={15} />
+                  Avatar
+                </Link>
+                <Link
+                  href="/auth"
                   onClick={clearFitnessSession}
                   className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-mint/20"
                 >

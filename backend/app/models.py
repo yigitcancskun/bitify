@@ -27,7 +27,14 @@ class CheckinRequest(BaseModel):
     user_id: str
     workout: bool = False
     diet: bool = False
-    water_cups: int = Field(default=0, ge=0, le=24)
+    water_liters: float = Field(default=0, ge=0, le=8)
+
+
+class CompleteProfileRequest(BaseModel):
+    user_id: str
+    age: int = Field(ge=13, le=100)
+    height_cm: float = Field(ge=100, le=260)
+    weight_kg: float = Field(ge=30, le=300)
 
 
 class LeaderboardRow(BaseModel):

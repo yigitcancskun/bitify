@@ -5,6 +5,9 @@ export type Profile = {
   level: number;
   credits: number;
   streak_count: number;
+  age?: number | null;
+  height_cm?: number | null;
+  weight_kg?: number | null;
 };
 
 export type AvatarVersion = {
@@ -23,7 +26,6 @@ export type AvatarVersion = {
 export type AvatarStats = {
   muscle: number;
   fat: number;
-  posture: number;
   tone: number;
 };
 
@@ -41,7 +43,7 @@ export type AppState = {
   }>;
 };
 
-export type LeaderboardSort = "xp" | "level" | "streak" | "muscle" | "fat" | "posture" | "tone";
+export type LeaderboardSort = "streak" | "muscle" | "fat" | "tone";
 
 export type LeaderboardRow = {
   user_id: string;
@@ -49,8 +51,6 @@ export type LeaderboardRow = {
   display_name: string;
   rank: number;
   is_current_user: boolean;
-  xp: number;
-  level: number;
   streak_count: number;
   stats: AvatarStats;
   score: number;
@@ -111,7 +111,6 @@ export async function generateAvatar(input: {
   userId: string;
   frontUrl: string;
   backUrl?: string | null;
-  userInput?: string;
   spendCredit?: boolean;
 }): Promise<{ mode: string; task_id?: string; state: AppState; avatar_version?: AvatarVersion }> {
   const response = await fetch(`${API_BASE}/api/avatar/generate`, {
@@ -121,7 +120,6 @@ export async function generateAvatar(input: {
       user_id: input.userId,
       front_url: input.frontUrl,
       back_url: input.backUrl,
-      user_input: input.userInput,
       spend_credit: Boolean(input.spendCredit)
     })
   });
@@ -154,7 +152,7 @@ export async function submitCheckin(input: {
   userId: string;
   workout: boolean;
   diet: boolean;
-  waterCups: number;
+  waterLiters: number;
 }): Promise<AppState> {
   const response = await fetch(`${API_BASE}/api/checkins/today`, {
     method: "POST",
@@ -163,7 +161,26 @@ export async function submitCheckin(input: {
       user_id: input.userId,
       workout: input.workout,
       diet: input.diet,
-      water_cups: input.waterCups
+      water_liters: input.waterLiters
+    })
+  });
+  return parseResponse<AppState>(response);
+}
+
+export async function completeProfile(input: {
+  userId: string;
+  age: number;
+  heightCm: number;
+  weightKg: number;
+}): Promise<AppState> {
+  const response = await fetch(`${API_BASE}/api/profile/complete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: input.userId,
+      age: input.age,
+      height_cm: input.heightCm,
+      weight_kg: input.weightKg
     })
   });
   return parseResponse<AppState>(response);
