@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 7778 --reload",
+    "install:all": "npm --prefix frontend install && python3 -m venv backend/.venv && backend/.venv/bin/python -m pip install --upgrade pip && backend/.venv/bin/python -m pip install -r backend/requirements.txt",
+    "review": "npm --prefix frontend run build && backend/.venv/bin/python -m compileall backend/app"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "playwright": "^1.59.1"
+  }
+}

@@ -1,0 +1,66 @@
+@import url("https://fonts.cdnfonts.com/css/fontzilla-comic");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(69, 209, 120, 0.28), transparent 38%),
+      radial-gradient(circle at 100% 100%, rgba(108, 232, 159, 0.25), transparent 42%),
+      linear-gradient(140deg, #f4fff9 0%, #dcf8ea 44%, #c8f0db 100%);
+  }
+
+  body {
+    color: #143224;
+    font-family: "Fontzilla Comic", Arial, Helvetica, sans-serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.018em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+
+  button,
+  input {
+    font: inherit;
+    font-family: "Fontzilla Comic", Arial, Helvetica, sans-serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.012em;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-black,
+  .font-bold,
+  .font-semibold {
+    font-weight: 400 !important;
+  }
+}
+
+.glass-panel {
+  background:
+    radial-gradient(circle at top left, rgba(69, 209, 120, 0.22), transparent 38%),
+    linear-gradient(145deg, rgba(245, 255, 250, 0.95), rgba(228, 250, 238, 0.95));
+  border: 1px solid rgba(110, 188, 136, 0.35);
+  box-shadow: 0 20px 60px rgba(52, 132, 79, 0.16);
+}
+
+.avatar-stage {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(44, 171, 102, 0.28), transparent 34%),
+    radial-gradient(circle at 50% 82%, rgba(111, 226, 156, 0.25), transparent 30%),
+    linear-gradient(180deg, #effff5, #dff8ea);
+}
