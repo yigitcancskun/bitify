@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "dev": "next dev -p 5556",
+    "dev": "rm -rf .next && next dev -p 5558",
     "build": "next build",
-    "start": "next start -p 5556",
+    "start": "next start -p 5558",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

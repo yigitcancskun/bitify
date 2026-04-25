@@ -64,3 +64,52 @@
     radial-gradient(circle at 50% 82%, rgba(111, 226, 156, 0.25), transparent 30%),
     linear-gradient(180deg, #effff5, #dff8ea);
 }
+
+.score-loader {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  animation: score-spin 1.35s linear infinite;
+}
+
+.score-loader::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(44, 171, 102, 0.35);
+}
+
+.score-dot {
+  --distance: 26px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  border-radius: 999px;
+  background: #2cab66;
+  opacity: 0.28;
+  transform: rotate(calc(var(--i) * 45deg)) translateY(calc(-1 * var(--distance)));
+  animation: score-dot-pulse 0.95s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.08s);
+}
+
+@keyframes score-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes score-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: rotate(calc(var(--i) * 45deg)) translateY(calc(-1 * var(--distance))) scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(calc(var(--i) * 45deg)) translateY(calc(-1 * var(--distance))) scale(1.15);
+  }
+}

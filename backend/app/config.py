@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     wiro_avatar_model_slug: str = "image-edit-general"
     wiro_fallback_model_owner: str = "google"
     wiro_fallback_model_slug: str = "nano-banana"
+    wiro_remove_bg_model_owner: str = "wiro"
+    wiro_remove_bg_model_slug: str = "remove-background"
+    wiro_score_model_owner: str = "google"
+    wiro_score_model_slug: str = "gemini-3-flash"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

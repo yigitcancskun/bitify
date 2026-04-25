@@ -10,23 +10,25 @@ import { generateAvatar, getAvatarTask, uploadPhotos } from "@/lib/api";
 import { useFitnessSession } from "@/lib/session";
 
 export default function AvatarPage() {
-  const { state, setState, booting, loading: sessionLoading, error, setError, startAnonymous } = useFitnessSession();
+  const { state, setState, booting, loading: sessionLoading, error, setError, login, register } = useFitnessSession();
   const [front, setFront] = useState<File | null>(null);
   const [back, setBack] = useState<File | null>(null);
   const [frontUrl, setFrontUrl] = useState<string | null>(null);
   const [backUrl, setBackUrl] = useState<string | null>(null);
+  const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+  const busy = loading || Boolean(pendingTaskId) || state?.current_avatar?.wiro_status === "running";
 
   const message = useMemo(() => {
     if (error) return error;
     if (!state?.current_avatar?.image_url && state?.current_avatar?.wiro_status !== "running") {
-      return "Upload front and back photos, then generate your avatar.";
+      return "Fotoğraf yükleyin. Avatar, view degisimi ve skorlar burada acilacak.";
     }
     if (state?.current_avatar?.wiro_status === "running") {
-      return "Wiro is generating your avatar from front and back references.";
+      return "Avatar uretiliyor. Form skoru ve identity buna gore guncellenecek.";
     }
-    return "Real Wiro avatar is active.";
+    return "Ilk uretilen avatar artik base identity olarak saklaniyor.";
   }, [error, state]);
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export default function AvatarPage() {
 
   async function generate() {
     if (!state || !front || !back) {
-      setError("Please upload both front and back photos.");
+      setError("Please upload both front and back body photos.");
       return;
     }
     setLoading(true);
@@ -72,7 +74,8 @@ export default function AvatarPage() {
       const result = await generateAvatar({
         userId: state.profile.id,
         frontUrl: uploaded.front_url,
-        backUrl: uploaded.back_url
+        backUrl: uploaded.back_url,
+        userInput
       });
       setState(result.state);
       if (result.task_id) setPendingTaskId(result.task_id);
@@ -84,18 +87,20 @@ export default function AvatarPage() {
   }
 
   if (booting) return <main className="min-h-screen bg-ink" />;
-  if (!state) return <IdentityGate loading={sessionLoading} error={error} onStart={startAnonymous} />;
+  if (!state) return <IdentityGate loading={sessionLoading} error={error} onLogin={login} onRegister={register} />;
 
   return (
     <AppChrome>
       <section className="grid gap-5 lg:grid-cols-[1fr_1fr]">
-        <AvatarCard avatar={state.current_avatar} />
+        <AvatarCard avatar={state.current_avatar} busy={busy} streakCount={state.profile.streak_count} />
         <UploadPanel
           front={front}
           back={back}
+          userInput={userInput}
           loading={loading}
           onFrontChange={setFront}
           onBackChange={setBack}
+          onUserInputChange={setUserInput}
           onGenerate={generate}
         />
       </section>
@@ -105,7 +110,7 @@ export default function AvatarPage() {
           <span>{message}</span>
         </div>
         {frontUrl || backUrl ? (
-          <p className="mt-2 text-xs text-slate-600">References: front + back uploaded and linked to Wiro task.</p>
+          <p className="mt-2 text-xs text-slate-600">Body references uploaded and linked to Wiro task.</p>
         ) : null}
       </section>
     </AppChrome>

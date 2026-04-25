@@ -7,7 +7,6 @@ export function StatsHeader({ profile }: { profile: Profile }) {
     <header className="grid gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-600">Anonymous identity</p>
           <h1 className="text-3xl font-black">{profile.username}</h1>
         </div>
         <div className="grid h-14 w-14 place-items-center rounded-2xl bg-violet shadow-glow">

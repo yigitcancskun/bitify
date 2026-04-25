@@ -1,9 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createAnonymousSession, getState, type AppState } from "@/lib/api";
+import { createAnonymousSession, getState, loginWithPassword, registerWithPassword, type AppState } from "@/lib/api";
 
 const SESSION_KEY = "bitify_user_id";
+
+export function clearFitnessSession() {
+  window.localStorage.removeItem(SESSION_KEY);
+}
 
 export function useFitnessSession() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -67,6 +71,42 @@ export function useFitnessSession() {
     }
   }, []);
 
+  const register = useCallback(async (username: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const session = await registerWithPassword(username, password);
+      setState(session);
+      setUserId(session.profile.id);
+      window.localStorage.setItem(SESSION_KEY, session.profile.id);
+      return session;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to register.");
+      return null;
+    } finally {
+      setLoading(false);
+      setBooting(false);
+    }
+  }, []);
+
+  const login = useCallback(async (username: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const session = await loginWithPassword(username, password);
+      setState(session);
+      setUserId(session.profile.id);
+      window.localStorage.setItem(SESSION_KEY, session.profile.id);
+      return session;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to log in.");
+      return null;
+    } finally {
+      setLoading(false);
+      setBooting(false);
+    }
+  }, []);
+
   return {
     userId,
     state,
@@ -75,6 +115,8 @@ export function useFitnessSession() {
     loading,
     error,
     setError,
+    register,
+    login,
     startAnonymous,
     refreshState
   };

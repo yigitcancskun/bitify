@@ -4,7 +4,7 @@ Hackathon MVP for an anonymous AI-powered fitness avatar loop.
 
 ## Ports
 
-- Frontend: `http://localhost:5556`
+- Frontend: `http://localhost:5558`
 - Backend: `http://localhost:7778`
 
 ## Setup
@@ -27,6 +27,13 @@ WIRO_FALLBACK_MODEL_SLUG=nano-banana
 ```
 
 Avoid `wiro/cartoonify` for this MVP because it produces a flatter 2D cartoon look.
+
+Photo-based score generation requires:
+
+```bash
+WIRO_SCORE_MODEL_OWNER=google
+WIRO_SCORE_MODEL_SLUG=gemini-3-flash
+```
 
 ## Run
 

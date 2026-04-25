@@ -10,7 +10,7 @@ import { submitCheckin } from "@/lib/api";
 import { useFitnessSession } from "@/lib/session";
 
 export default function MyProgressPage() {
-  const { state, setState, booting, loading: sessionLoading, error, setError, startAnonymous } = useFitnessSession();
+  const { state, setState, booting, loading: sessionLoading, error, setError, login, register } = useFitnessSession();
   const [workout, setWorkout] = useState(false);
   const [diet, setDiet] = useState(false);
   const [waterCups, setWaterCups] = useState(6);
@@ -36,7 +36,7 @@ export default function MyProgressPage() {
   }
 
   if (booting) return <main className="min-h-screen bg-ink" />;
-  if (!state) return <IdentityGate loading={sessionLoading} error={error} onStart={startAnonymous} />;
+  if (!state) return <IdentityGate loading={sessionLoading} error={error} onLogin={login} onRegister={register} />;
 
   return (
     <AppChrome>

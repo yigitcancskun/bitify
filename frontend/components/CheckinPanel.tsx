@@ -33,7 +33,6 @@ export function CheckinPanel({
     <section className="glass-panel rounded-[28px] p-5">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-600">Daily tasks</p>
           <h2 className="text-2xl font-bold">Log today</h2>
         </div>
         <div className="rounded-full bg-mint/15 px-3 py-1 text-xs font-semibold text-mint">+75 XP</div>

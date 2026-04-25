@@ -14,6 +14,10 @@ export type AvatarVersion = {
   stats: AvatarStats;
   wiro_status: string;
   wiro_task_id?: string | null;
+  views?: {
+    front?: string | null;
+    back?: string | null;
+  };
 };
 
 export type AvatarStats = {
@@ -37,6 +41,26 @@ export type AppState = {
   }>;
 };
 
+export type LeaderboardSort = "xp" | "level" | "streak" | "muscle" | "fat" | "posture" | "tone";
+
+export type LeaderboardRow = {
+  user_id: string;
+  username: string;
+  display_name: string;
+  rank: number;
+  is_current_user: boolean;
+  xp: number;
+  level: number;
+  streak_count: number;
+  stats: AvatarStats;
+  score: number;
+};
+
+export type LeaderboardResponse = {
+  sort: LeaderboardSort;
+  rows: LeaderboardRow[];
+};
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7778";
 
 async function parseResponse<T>(response: Response): Promise<T> {
@@ -56,6 +80,24 @@ export async function createAnonymousSession(username?: string): Promise<AppStat
   return parseResponse<AppState>(response);
 }
 
+export async function registerWithPassword(username: string, password: string): Promise<AppState> {
+  const response = await fetch(`${API_BASE}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+  return parseResponse<AppState>(response);
+}
+
+export async function loginWithPassword(username: string, password: string): Promise<AppState> {
+  const response = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+  return parseResponse<AppState>(response);
+}
+
 export async function uploadPhotos(userId: string, front: File, back?: File | null): Promise<{ front_url: string; back_url: string | null }> {
   const form = new FormData();
   form.append("user_id", userId);
@@ -69,6 +111,7 @@ export async function generateAvatar(input: {
   userId: string;
   frontUrl: string;
   backUrl?: string | null;
+  userInput?: string;
   spendCredit?: boolean;
 }): Promise<{ mode: string; task_id?: string; state: AppState; avatar_version?: AvatarVersion }> {
   const response = await fetch(`${API_BASE}/api/avatar/generate`, {
@@ -78,6 +121,7 @@ export async function generateAvatar(input: {
       user_id: input.userId,
       front_url: input.frontUrl,
       back_url: input.backUrl,
+      user_input: input.userInput,
       spend_credit: Boolean(input.spendCredit)
     })
   });
@@ -98,6 +142,12 @@ export async function getAvatarTask(taskId: string): Promise<{
 export async function getState(userId: string): Promise<AppState> {
   const response = await fetch(`${API_BASE}/api/me/state?user_id=${encodeURIComponent(userId)}`);
   return parseResponse<AppState>(response);
+}
+
+export async function getLeaderboard(userId: string, sort: LeaderboardSort): Promise<LeaderboardResponse> {
+  const params = new URLSearchParams({ user_id: userId, sort });
+  const response = await fetch(`${API_BASE}/api/leaderboard?${params.toString()}`);
+  return parseResponse<LeaderboardResponse>(response);
 }
 
 export async function submitCheckin(input: {

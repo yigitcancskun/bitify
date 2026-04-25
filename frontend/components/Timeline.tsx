@@ -11,7 +11,6 @@ export function Timeline({ history }: { history: AvatarVersion[] }) {
 
   return (
     <section className="glass-panel rounded-[28px] p-5">
-      <p className="text-sm text-slate-600">Mini timeline</p>
       <h2 className="mb-5 text-2xl font-bold">Progress trace</h2>
       <div className="grid grid-cols-3 gap-3">
         {items.map((item, index) => (

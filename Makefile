@@ -5,7 +5,7 @@ SHELL := /bin/zsh
 help:
 	@echo "Available commands:"
 	@echo "  make install  Install frontend/backend dependencies"
-	@echo "  make fe       Start Next.js frontend on localhost:5556"
+	@echo "  make fe       Start Next.js frontend on localhost:5558"
 	@echo "  make be       Start FastAPI backend on localhost:7778"
 	@echo "  make dev      Start frontend and backend together"
 	@echo "  make db       Print Supabase schema path and setup notes"
